@@ -25,6 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const footerBtn = document.getElementById("footer-download-btn");
     const versionInfo = document.getElementById("latest-version-info");
 
+    // Default to local APK if GitHub fetch fails
+    let downloadUrl = "assets/EMOVibes.apk";
+    heroBtn.href = downloadUrl;
+    footerBtn.href = downloadUrl;
+
     fetch(REPO_URL)
         .then(response => {
             if (!response.ok) throw new Error("Network response was not ok");
@@ -34,16 +39,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const latestVersion = data.tag_name;
             const assets = data.assets;
             
-            let downloadUrl = data.html_url; // Fallback to release page
-
             // Find the universal APK asset
             const apkAsset = assets.find(asset => asset.name === "app-universal-release.apk");
             if (apkAsset) {
                 downloadUrl = apkAsset.browser_download_url;
+                heroBtn.href = downloadUrl;
+                footerBtn.href = downloadUrl;
             }
 
-            heroBtn.href = downloadUrl;
-            footerBtn.href = downloadUrl;
             versionInfo.textContent = `Latest Release: ${latestVersion}`;
             
             // Update Open Source card version
@@ -53,7 +56,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         })
         .catch(error => {
-            console.error("Error fetching release info:", error);
-            versionInfo.textContent = "Check GitHub for the latest release.";
+            console.error("Error fetching release info, falling back to local APK:", error);
+            versionInfo.textContent = "Version: 1.0.0 (Local)";
+            
+            const osVersionText = document.getElementById("os-version-text");
+            if (osVersionText) {
+                osVersionText.textContent = "v1.0.0";
+            }
         });
 });
