@@ -45,6 +45,12 @@ document.addEventListener("DOMContentLoaded", () => {
             heroBtn.href = downloadUrl;
             footerBtn.href = downloadUrl;
             versionInfo.textContent = `Latest Release: ${latestVersion}`;
+            
+            // Update Open Source card version
+            const osVersionText = document.getElementById("os-version-text");
+            if (osVersionText) {
+                osVersionText.textContent = latestVersion;
+            }
         })
         .catch(error => {
             console.error("Error fetching release info:", error);
