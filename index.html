@@ -509,18 +509,24 @@ const navIO = new IntersectionObserver((entries)=>{
 sections.forEach(s=>s && navIO.observe(s));
 
 /* ---------- Cursor glow / ring / dot ---------- */
+const isMobile = window.matchMedia('(max-width: 768px)').matches;
+const isTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
 const glow = document.getElementById('cursorGlow'), ring = document.getElementById('cursorRing'), dot = document.getElementById('cursorDot');
 let mx=innerWidth/2,my=innerHeight/2, rx=mx, ry=my;
-window.addEventListener('mousemove', (e)=>{
-  mx=e.clientX; my=e.clientY;
-  glow.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
-  dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
-});
-(function ringLoop(){ rx += (mx-rx)*.15; ry += (my-ry)*.15; ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`; requestAnimationFrame(ringLoop); })();
-document.querySelectorAll('a,button,.rippleTarget,.tilt-card').forEach(el=>{
-  el.addEventListener('mouseenter', ()=>{ ring.style.width='60px'; ring.style.height='60px'; ring.style.background='rgba(139,92,246,.12)'; ring.style.borderColor='rgba(139,92,246,.6)'; });
-  el.addEventListener('mouseleave', ()=>{ ring.style.width='34px'; ring.style.height='34px'; ring.style.background='transparent'; ring.style.borderColor='rgba(255,255,255,.5)'; });
-});
+
+if (!isTouch) {
+  window.addEventListener('mousemove', (e)=>{
+    mx=e.clientX; my=e.clientY;
+    glow.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
+    dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
+  });
+  (function ringLoop(){ rx += (mx-rx)*.15; ry += (my-ry)*.15; ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`; requestAnimationFrame(ringLoop); })();
+  document.querySelectorAll('a,button,.rippleTarget,.tilt-card').forEach(el=>{
+    el.addEventListener('mouseenter', ()=>{ ring.style.width='60px'; ring.style.height='60px'; ring.style.background='rgba(139,92,246,.12)'; ring.style.borderColor='rgba(139,92,246,.6)'; });
+    el.addEventListener('mouseleave', ()=>{ ring.style.width='34px'; ring.style.height='34px'; ring.style.background='transparent'; ring.style.borderColor='rgba(255,255,255,.5)'; });
+  });
+}
 
 /* ---------- Ripple click ---------- */
 document.querySelectorAll('.rippleTarget').forEach(btn=>{
@@ -617,7 +623,7 @@ let W,H,particles=[];
 function resize(){ W=canvas.width=innerWidth; H=canvas.height=innerHeight; }
 resize(); window.addEventListener('resize', resize);
 const colors=['139,92,246','244,114,182','34,211,238'];
-const count = window.matchMedia('(max-width:768px)').matches ? 26 : 55;
+const count = isMobile ? 12 : 55;
 for(let i=0;i<count;i++){
   particles.push({ x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.8+.6,
     vx:(Math.random()-0.5)*.25, vy:(Math.random()-0.5)*.25, c:colors[i%3], a:Math.random()*.5+.2 });
@@ -628,11 +634,13 @@ function tick(){
     p.x+=p.vx; p.y+=p.vy;
     if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0;
     ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle=`rgba(${p.c},${p.a})`; ctx.shadowBlur=8; ctx.shadowColor=`rgba(${p.c},.8)`; ctx.fill();
+    ctx.fillStyle=`rgba(${p.c},${p.a})`; 
+    if (!isMobile) { ctx.shadowBlur=8; ctx.shadowColor=`rgba(${p.c},.8)`; }
+    ctx.fill();
   });
   requestAnimationFrame(tick);
 }
-tick();
+if (!isMobile || count > 0) tick();
 
 /* ---------- Smooth scroll for nav ---------- */
 document.querySelectorAll('a[href^="#"]').forEach(a=>{
