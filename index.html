@@ -305,6 +305,33 @@ footer{padding:50px 48px 40px; background:var(--glass); border-top:1px solid var
 
 .reveal{opacity:0; transform:translateY(30px); transition:opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1);}
 .reveal.in{opacity:1; transform:translateY(0);}
+
+/* ===== EXTREME MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 768px) {
+  /* 1. Disable massive blurred backgrounds (Main cause of lag) */
+  .aurora, .blob { display: none !important; }
+  .bg-scene { background: linear-gradient(145deg, #12091f 0%, #060411 100%) !important; }
+  
+  /* 2. Disable heavy glassmorphism (backdrop-filter) */
+  header.scrolled, .tilt-card, .float-card, .btn-secondary, .cube3d .face, footer { 
+    backdrop-filter: none !important; 
+  }
+  header.scrolled { background: rgba(6,4,17, 0.98) !important; }
+  .tilt-card, .float-card, .btn-secondary { background: #150d24 !important; }
+  
+  /* 3. Disable continuous 3D rotations and floats */
+  .phone { animation: none !important; transform: none !important; }
+  .orbit-ring, .cube3d, .tilt-icon { animation: none !important; }
+  .hero-visual { transform-style: flat !important; perspective: none !important; }
+  .cube3d { display: none !important; }
+  
+  /* 4. Disable heavy text shadows and box shadows */
+  .phone-screen { box-shadow: none !important; }
+  .tilt-card:hover { box-shadow: none !important; transform: none !important; }
+  
+  /* 5. Hide particle canvas */
+  #particleCanvas { display: none !important; }
+}
 </style>
 </head>
 <body>
@@ -623,24 +650,25 @@ let W,H,particles=[];
 function resize(){ W=canvas.width=innerWidth; H=canvas.height=innerHeight; }
 resize(); window.addEventListener('resize', resize);
 const colors=['139,92,246','244,114,182','34,211,238'];
-const count = isMobile ? 12 : 55;
+const count = isMobile ? 0 : 45;
 for(let i=0;i<count;i++){
   particles.push({ x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.8+.6,
     vx:(Math.random()-0.5)*.25, vy:(Math.random()-0.5)*.25, c:colors[i%3], a:Math.random()*.5+.2 });
 }
 function tick(){
+  if(isMobile) return; /* Completely stop rendering loop on mobile */
   ctx.clearRect(0,0,W,H);
   particles.forEach(p=>{
     p.x+=p.vx; p.y+=p.vy;
     if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0;
     ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
     ctx.fillStyle=`rgba(${p.c},${p.a})`; 
-    if (!isMobile) { ctx.shadowBlur=8; ctx.shadowColor=`rgba(${p.c},.8)`; }
+    ctx.shadowBlur=8; ctx.shadowColor=`rgba(${p.c},.8)`;
     ctx.fill();
   });
   requestAnimationFrame(tick);
 }
-if (!isMobile || count > 0) tick();
+if (!isMobile) requestAnimationFrame(tick);
 
 /* ---------- Smooth scroll for nav ---------- */
 document.querySelectorAll('a[href^="#"]').forEach(a=>{
